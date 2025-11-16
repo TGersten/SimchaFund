@@ -17,9 +17,17 @@
     $(".deposit-button").on("click", function () {
         console.log("click")
 
-        const contributorId = $(this).data('id');
-        console.log(contributorId);
-        $('#contributor-id').val(contributorId);
+        const id = $(this).data('id');
+        console.log(id);
+        console.log("past contributor id")
+        const firstName = $(this).data('first-name')
+        const lastName = $(this).data('last-name')
+        const fullName = firstName + lastName;
+
+   
+        $('#contributor-id').val(id);
+
+        $("#deposit-name").text(fullName);
 
 
         depositModal.show();
@@ -35,25 +43,20 @@
 
         const contributorId = $(this).data('id');
         const firstName = $(this).data('first-name');
-        $("#contributor_first_name").val(firstName);
-
         const lastName = $(this).data('last-name');
-        $("#contributor_last_name").val(lastName);
-
         const cellNumber = $(this).data('cell');
-        $("#contributor_cell_number").val(cellNumber);
-
-        const date = $(this).data('date');     
-        $("#contributor_created_at").val(date);
-
+        const date = $(this).data('date');
         const alwaysInclude = $(this).data('always-include');
-        console.log(alwaysInclude);
-        
-        $("#contributor_always_include").prop('checked', !alwaysInclude );
 
+        $("#contributor_first_name").val(firstName);
+        $("#contributor_last_name").val(lastName);
+        $("#contributor_cell_number").val(cellNumber);
+        $("#contributor_created_at").val(date);      
+        $("#contributor_always_include").prop('checked', alwaysInclude === "True");
         $("#initialDepositDiv").hide();
-
-
+        $("#edit-contributor-form").attr('action', "/contributors/edit");
+        $("#edit-contributor-form").append(`<input type="hidden" id="contributor-id"name="Id" value="${contributorId}" />`)
+        $("#modal-title").text('Edit Contributer')
 
         editModal.show();
 

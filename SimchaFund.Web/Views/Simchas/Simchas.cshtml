@@ -29,8 +29,10 @@
                         <td><a class="btn btn-primary" href="/simchas/contributions?simchaid=@simcha.Id">Contributions</a> </td>
                         <td>@simcha.Name</td>
                         <td>
+                            @simcha.AmountOfContributors/@Model.TotalContributors
                         </td>
-                        <td> </td>
+                        <td>
+                            $@simcha.TotalContributed.00</td>
                         <td>@simcha.Date.ToShortDateString()</td>
                     </tr>
                 }

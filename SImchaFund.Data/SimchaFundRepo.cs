@@ -26,7 +26,7 @@ namespace SimchaFund.Data
             var simchas = new List<Simcha>();
             var reader = cmd.ExecuteReader();
 
-            while(reader.Read())
+            while (reader.Read())
             {
                 simchas.Add(new Simcha
                 {
@@ -36,14 +36,19 @@ namespace SimchaFund.Data
                 });
             }
 
+            foreach (Simcha s in simchas)
+            {
+                s.AmountOfContributors = GetContributorCountForSimcha(s);
+                s.TotalContributed = GetTotalContributedForSimcha(s);
+            }
             return simchas;
 
         }
 
         public void AddNewSimcha(Simcha s)
         {
-           
-            if(s.Name == null || s.Date.ToShortDateString() == "1/1/0001")
+
+            if (s.Name == null || s.Date.ToShortDateString() == "1/1/0001")
             {
                 return;
             }
@@ -79,13 +84,118 @@ namespace SimchaFund.Data
                     CellNumber = (string)reader["CellNumber"],
                     Date = (DateTime)reader["Date"],
                     AlwaysInclude = (bool)reader["AlwaysInclude"]
+
                 });
             }
+
+            foreach (Contributor c in contributors)
+            {
+                c.TotalContributed = GetTotalContributed(c);
+                c.TotalDeposited = GetTotalDeposited(c);
+            }
+
 
             return contributors;
 
 
         }
+
+        private int GetTotalContributed(Contributor c)
+        {
+            using var connection = new SqlConnection(_connectionString);
+
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = "SELECT SUM(amount) as TotalContributed FROM Contributions WHERE contributorId=@id";
+            cmd.Parameters.AddWithValue("@id", c.Id);
+            connection.Open();
+
+
+            var result = cmd.ExecuteScalar();
+            if (result == DBNull.Value)
+            {
+                return 0;
+
+            }
+            else
+            {
+                return Convert.ToInt32(result);
+            }
+
+        }
+        private int GetTotalContributedForSimcha(Simcha s)
+        {
+            using var connection = new SqlConnection(_connectionString);
+
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = "SELECT SUM(amount) as TotalContributed FROM Contributions WHERE simchaId=@id";
+            cmd.Parameters.AddWithValue("@id", s.Id);
+            connection.Open();
+
+
+            var result = cmd.ExecuteScalar();
+            if (result == DBNull.Value)
+            {
+                return 0;
+
+            }
+            else
+            {
+                return Convert.ToInt32(result);
+            }
+        }
+
+        private int GetTotalDeposited(Contributor c)
+        {
+            using var connection = new SqlConnection(_connectionString);
+
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = "SELECT SUM(amount) as TotalDeposited FROM Deposits WHERE contributorId=@id";
+            cmd.Parameters.AddWithValue("@id", c.Id);
+            connection.Open();
+
+
+            var result = cmd.ExecuteScalar();
+            if (result == DBNull.Value)
+            {
+                return 0;
+
+            }
+            else
+            {
+                return Convert.ToInt32(result);
+            }
+
+        }
+
+        public int GetTotalDepositedForAll()
+        {
+            using var connection = new SqlConnection(_connectionString);
+
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = "SELECT SUM(amount) as TotalDeposited FROM Deposits ";
+
+            connection.Open();
+
+
+            return (int)(decimal)cmd.ExecuteScalar();
+
+        }
+        public int GetTotaContributedForAll()
+        {
+            using var connection = new SqlConnection(_connectionString);
+
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = "SELECT SUM(amount) as TotalContributed FROM Contributions ";
+
+            connection.Open();
+
+
+            return (int)(decimal)cmd.ExecuteScalar();
+
+        }
+
+
+
         public void AddInitialDeposit(Contributor c)
         {
             using var connection = new SqlConnection(_connectionString);
@@ -101,16 +211,16 @@ namespace SimchaFund.Data
         public int AddNewContributor(Contributor c)
         {
 
-            if (c.FirstName == null || c.LastName== null || c.CellNumber == null || c.Date.ToShortDateString() == "1/1/0001" || c.InitialDeposit == 0)
+            if (c.FirstName == null || c.LastName == null || c.CellNumber == null || c.Date.ToShortDateString() == "1/1/0001" || c.InitialDeposit == 0)
             {
                 return 0;
             }
 
-           
+
             using var connection = new SqlConnection(_connectionString);
             using var cmd = connection.CreateCommand();
             cmd.CommandText = "INSERT INTO Contributors ( FirstName, LastName, CellNumber, Date, ALwaysInclude) Values(@firstName, @lastName, @cellNumber, @date, @alwaysInclude) SELECT SCOPE_IDENTITY()";
-            
+
             cmd.Parameters.AddWithValue("@firstName", c.FirstName);
             cmd.Parameters.AddWithValue("@lastName", c.LastName);
             cmd.Parameters.AddWithValue("@cellNumber", c.CellNumber);
@@ -118,14 +228,14 @@ namespace SimchaFund.Data
             cmd.Parameters.AddWithValue("@alwaysInclude", c.AlwaysInclude);
             connection.Open();
 
-            return (int)(decimal) cmd.ExecuteScalar();
-            
+            return (int)(decimal)cmd.ExecuteScalar();
+
 
         }
 
         public void AddDeposit(Deposit d)
         {
-            if(d.ContributorId == 0 || d.Amount == 0 || d.Date.ToShortDateString() == "1/1/0001")
+            if (d.ContributorId == 0 || d.Amount == 0 || d.Date.ToShortDateString() == "1/1/0001")
             {
                 return;
             }
@@ -136,10 +246,121 @@ namespace SimchaFund.Data
             cmd.Parameters.AddWithValue("@contributorId", d.ContributorId);
             cmd.Parameters.AddWithValue("@amount", d.Amount);
             cmd.Parameters.AddWithValue("@date", d.Date);
-          
+
             connection.Open();
             cmd.ExecuteNonQuery();
 
         }
+
+        public void EditContributor(Contributor c)
+        {
+            if (c.FirstName == null || c.LastName == null || c.CellNumber == null || c.Date.ToShortDateString() == "1/1/0001")
+            {
+                return;
+            }
+
+            using var connection = new SqlConnection(_connectionString);
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = "UPDATE Contributors SET FirstName = @firstName, LastName = @lastName, CellNumber= @cellNumber, Date = @date, alwaysInclude = @alwaysInclude WHERE Id = @id";
+            cmd.Parameters.AddWithValue("@firstName", c.FirstName);
+            cmd.Parameters.AddWithValue("@lastName", c.LastName);
+            cmd.Parameters.AddWithValue("@cellNumber", c.CellNumber);
+            cmd.Parameters.AddWithValue("@date", c.Date);
+            cmd.Parameters.AddWithValue("@alwaysInclude", c.AlwaysInclude);
+            cmd.Parameters.AddWithValue("@id", c.Id);
+            connection.Open();
+
+            cmd.ExecuteNonQuery();
+        }
+
+        public int GetContributorCount()
+        {
+            using var connection = new SqlConnection(_connectionString);
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = "SELECT COUNT (*) FROM Contributors";
+            connection.Open();
+
+            return (int)cmd.ExecuteScalar();
+        }
+
+        private int GetContributorCountForSimcha(Simcha s)
+        {
+            using var connection = new SqlConnection(_connectionString);
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = "SELECT COUNT (*) FROM Contributions WHERE SimchaId = @id ";
+            cmd.Parameters.AddWithValue("@id", s.Id);
+
+            connection.Open();
+
+            var result = cmd.ExecuteScalar();
+            if (result == DBNull.Value)
+            {
+                return 0;
+
+            }
+            else
+            {
+                return Convert.ToInt32(result);
+            }
+        }
+
+
+        public Simcha GetSimchaForId(int id)
+
+        {
+            using var connection = new SqlConnection(_connectionString);
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = "SELECT * FROM Simchas WHERE Id = @id";
+            cmd.Parameters.AddWithValue("@id", id);
+            connection.Open();
+            var reader = cmd.ExecuteReader();
+
+            Simcha s = new();
+
+            if (reader.Read())
+            {
+                s.Id = (int)reader["id"];
+                s.Name = (string)reader["name"];
+                s.Date = (DateTime)reader["Date"];
+
+            }
+            return s;
+        }
+
+        public void UpdateContributions(int simchaId, List<ToInclude> contributors)
+        {
+
+
+            using var connection = new SqlConnection(_connectionString);
+            using var cmd = connection.CreateCommand();
+            connection.Open();
+
+            foreach (ToInclude c in contributors)
+            {
+
+                cmd.CommandText = "INSERT INTO Contributions (SimchaId, ContributorId, Amount) Values(@simchaId, @contributorId, @amount)";
+                cmd.Parameters.Clear();
+                cmd.Parameters.AddWithValue("@simchaId", simchaId);
+                cmd.Parameters.AddWithValue("@contributorId", c.ContributorId);
+                cmd.Parameters.AddWithValue("@amount", c.Amount);
+
+                cmd.ExecuteNonQuery();
+
+            }
+
+        }
+
+        public void DeleteContributionsForSimchaId(int id)
+        {
+            using var connection = new SqlConnection(_connectionString);
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = "DELETE FROM Contributions WHERE simchaId = @id";
+            cmd.Parameters.AddWithValue("@id", id);
+            connection.Open();
+
+            cmd.ExecuteNonQuery();
+        }
     }
+
 }
+

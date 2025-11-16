@@ -13,8 +13,13 @@ namespace SimchaFund.Web.Controllers
         {
             var repo = new SimchaFundRepo(_connectionString);
             var vm = new ContributorsViewModel();
+            int totalDeposited = repo.GetTotalDepositedForAll();
+            int totalContributed = repo.GetTotaContributedForAll();
+
+            vm.Total = totalDeposited - totalContributed;
 
             vm.Contributors = repo.GetAllContributors();
+           
             return View(vm);
         }
 
@@ -40,6 +45,16 @@ namespace SimchaFund.Web.Controllers
 
             return Redirect("/contributors/Index");
         }
+
+        [HttpPost]
+        public IActionResult Edit(Contributor c)
+        {
+
+            var repo = new SimchaFundRepo(_connectionString);
+            repo.EditContributor(c);
+            return Redirect("/contributors/index");
+        }
+
 
     }
     

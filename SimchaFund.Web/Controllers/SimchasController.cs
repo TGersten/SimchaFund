@@ -7,14 +7,16 @@ namespace SimchaFund.Web.Controllers
 {
     public class SimchasController : Controller
     {
-      private readonly string _connectionString = @"Data Source=.\sqlexpress;Initial Catalog=SimchaFund;Integrated Security=True;TrustServerCertificate=true;";
+        private readonly string _connectionString = @"Data Source=.\sqlexpress;Initial Catalog=SimchaFund;Integrated Security=True;TrustServerCertificate=true;";
 
         public IActionResult Simchas()
         {
             var repo = new SimchaFundRepo(_connectionString);
             var vm = new SimchasViewModel();
 
+
             vm.Simchas = repo.GetAllSimchas();
+            vm.TotalContributors = repo.GetContributorCount();
 
             return View(vm);
         }
@@ -28,8 +30,41 @@ namespace SimchaFund.Web.Controllers
             return Redirect("/");
         }
 
+        public IActionResult Contributions(string simchaid)
+        {
+            if (!int.TryParse(simchaid, out int simchaIdValue))
+            {
+                return Redirect("/");
+            }
+            var repo = new SimchaFundRepo(_connectionString);
+            var vm = new ContributionsViewModel
+            {
+                Contributors = repo.GetAllContributors(),
+                Simcha = repo.GetSimchaForId(simchaIdValue)
+            };
 
 
+
+            if (vm.Simcha == null)
+            {
+                return Redirect("/");
+            }
+
+            return View(vm);
+        }
+
+        [HttpPost]
+
+        public IActionResult UpdateContributions(int simchaId, List<ToInclude> contributors)
+        {
+            var repo = new SimchaFundRepo(_connectionString);
+            repo.DeleteContributionsForSimchaId(simchaId);
+
+            var contributionsToUpdate = contributors.Where(c => c.Include).ToList();
+            repo.UpdateContributions(simchaId, contributionsToUpdate);
+
+            return Redirect("/");
+        }
 
     }
 }

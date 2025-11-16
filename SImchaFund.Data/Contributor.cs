@@ -14,6 +14,10 @@ namespace SimchaFund.Data
         public string CellNumber { get; set; }
         public DateTime Date { get; set; }
         public bool AlwaysInclude { get; set; }
+      
         public int InitialDeposit { get; set; }
+
+        public int TotalDeposited { get; set; }
+        public int TotalContributed { get; set; }
     }
 }

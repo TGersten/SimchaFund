@@ -17,7 +17,7 @@
             </div>
 
             <div class="col-md-4">
-                <h3>Total: $</h3>
+                <h3>Total: $@Model.Total</h3>
             </div>
         </div>
         <div class="table-responsive">
@@ -36,14 +36,14 @@
                     {
                         <tr>
                             <td>
-                                <button class="btn btn-success deposit-button" data-contribid="@c.Id">Deposit</button>
+                                <button class="btn btn-success deposit-button"  data-id="@c.Id" data-first-name="@c.FirstName" data-last-name=" @c.LastName">Deposit</button>
                             </td>
                             <td>@c.LastName  @c.FirstName</td>
                             <td>
                                 @c.CellNumber
                             </td>
                             <td>
-                                $
+                                $@(c.TotalDeposited- c.TotalContributed).00
                             </td>
                             <td style="text-align: center;">
                                
@@ -69,11 +69,12 @@
         <div class="modal fade new-contrib" tabindex="-1" role="dialog">
             <div class="modal-dialog">
                 <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">New Contributor</h5>
+                    <div class="modal-header" >
+                        <h5 class="modal-title" id="modal-title">New Contributor</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
-                    <form method="POST" action="/contributors/new">
+                    <form method="POST" action="/contributors/new" id="edit-contributor-form">
+                       
                         <div class="modal-body">
                             <div class="row">
                                 <div class="form-group col-md-6">

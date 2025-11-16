@@ -1,10 +1,11 @@
 ﻿using SimchaFund.Data;
+
 namespace SimchaFund.Web.Models
 {
-    public class ContributorsViewModel
+    public class ContributionsViewModel
     {
         public List<Contributor> Contributors { get; set; }
-        public int Total { get; set; }
-        public string Message { get; set; }
+        public Simcha Simcha { get; set; }
+      
     }
 }
