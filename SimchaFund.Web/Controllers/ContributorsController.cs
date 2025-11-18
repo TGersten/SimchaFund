@@ -19,7 +19,11 @@ namespace SimchaFund.Web.Controllers
             vm.Total = totalDeposited - totalContributed;
 
             vm.Contributors = repo.GetAllContributors();
-           
+
+            if (TempData["message"]!=null)
+            {
+                vm.Message = (string)TempData["message"];
+            }
             return View(vm);
         }
 
@@ -33,6 +37,8 @@ namespace SimchaFund.Web.Controllers
             {
                 repo.AddInitialDeposit(c);
             }
+
+            TempData["message"] = "New Contributor created!";
             return Redirect("/Contributors/Index");
 
         }
@@ -52,10 +58,55 @@ namespace SimchaFund.Web.Controllers
 
             var repo = new SimchaFundRepo(_connectionString);
             repo.EditContributor(c);
+            TempData["message"] = "Contributor updated successfully!";
             return Redirect("/contributors/index");
+        }
+
+        public IActionResult History(string contribid)
+        {
+            var repo = new SimchaFundRepo(_connectionString);
+            var vm = new HistoryViewModel();
+
+            if (!int.TryParse(contribid, out int contribIdValue))
+            {
+                return Redirect("/");
+            }
+
+            var Deposits = repo.GetAllDepositsById(contribIdValue);
+            var Contributions = repo.GetAllContributionsById(contribIdValue);
+
+            List<Transaction> transactions = new();
+
+            foreach (Deposit d in Deposits)
+            {
+                transactions.Add(new()
+                {
+                    Action = "Deposit",
+                    Date = d.Date,
+                    Amount = d.Amount
+                });
+
+
+            }
+
+            foreach (Contribution c in Contributions)
+            {
+                transactions.Add(new()
+                {
+                    Action = $"Contribution for {c.SimchaName} simcha",
+                    Date = c.Date,
+                    Amount = c.Amount
+                });
+
+            }
+
+            vm.Transactions = transactions.OrderByDescending(t => t.Date).ToList();
+            vm.Contributor = repo.GetContributorForId(contribIdValue);
+
+            return View(vm);
         }
 
 
     }
-    
+
 }

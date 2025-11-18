@@ -64,5 +64,35 @@
 
 
     })
+    $("#search").on("keyup", function () {
+        const text = $(this).val().toLocaleLowerCase();
+
+        $(".person-row").each(function () {
+            const row = $(this);
+            const firstName = row.find(".edit-contrib").data("first-name");
+            const lastName = row.find(".edit-contrib").data("last-name");
+
+            const name = firstName + lastName
+
+            if (!name.toLowerCase().includes(text)) {
+                $(this).hide();
+            }
+            else {
+                $(this).show()
+            }
+
+            
+            
+        })
+       
+
+
+    })
+
+    $("#clear").on("click", function () {
+       $("#search").val("")
+       
+
+    });
 })
 

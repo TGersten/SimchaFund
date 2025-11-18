@@ -14,6 +14,10 @@ namespace SimchaFund.Web.Controllers
             var repo = new SimchaFundRepo(_connectionString);
             var vm = new SimchasViewModel();
 
+            if(TempData["message"] != null)
+            {
+                vm.Message = (string)TempData["message"];
+            }
 
             vm.Simchas = repo.GetAllSimchas();
             vm.TotalContributors = repo.GetContributorCount();
@@ -27,6 +31,7 @@ namespace SimchaFund.Web.Controllers
             var repo = new SimchaFundRepo(_connectionString);
             repo.AddNewSimcha(s);
 
+            TempData["message"] = "New Simcha created!";
             return Redirect("/");
         }
 
@@ -39,16 +44,28 @@ namespace SimchaFund.Web.Controllers
             var repo = new SimchaFundRepo(_connectionString);
             var vm = new ContributionsViewModel
             {
-                Contributors = repo.GetAllContributors(),
+              
                 Simcha = repo.GetSimchaForId(simchaIdValue)
             };
 
-
+            List<int> ids = repo.GetIdsOfContributorsForASimcha(simchaIdValue);
+            vm.Contributors = repo.GetAllContributors();
+            foreach(Contributor c in vm.Contributors )
+            {
+               foreach(int id in ids)
+                {
+                    if (c.Id == id)
+                    {
+                        c.Contributed = true;
+                    }
+                }
+            }
 
             if (vm.Simcha == null)
             {
                 return Redirect("/");
             }
+
 
             return View(vm);
         }
@@ -62,6 +79,8 @@ namespace SimchaFund.Web.Controllers
 
             var contributionsToUpdate = contributors.Where(c => c.Include).ToList();
             repo.UpdateContributions(simchaId, contributionsToUpdate);
+
+            TempData["message"] = "Simcha updated successfully!";
 
             return Redirect("/");
         }

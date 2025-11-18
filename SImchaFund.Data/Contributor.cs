@@ -19,5 +19,7 @@ namespace SimchaFund.Data
 
         public int TotalDeposited { get; set; }
         public int TotalContributed { get; set; }
+
+        public bool Contributed { get; set; }
     }
 }

@@ -360,6 +360,119 @@ namespace SimchaFund.Data
 
             cmd.ExecuteNonQuery();
         }
+
+
+        public List<Deposit> GetAllDepositsById(int id)
+        {
+
+            using var connection = new SqlConnection(_connectionString);
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = "SELECT * FROM Deposits WHERE ContributorId = @id";
+            cmd.Parameters.AddWithValue("@id", id);
+            connection.Open();
+
+            var reader = cmd.ExecuteReader();
+            List<Deposit> deposits = new();
+
+            while (reader.Read())
+            {
+                deposits.Add(new Deposit
+                {
+                    Id = (int)reader["id"],
+                    ContributorId = (int)reader["ContributorId"],
+                    Amount = (decimal)reader["Amount"],
+                    Date = (DateTime)reader["Date"],
+
+
+                });
+            }
+
+            return deposits;
+
+
+        }
+
+        public List<Contribution> GetAllContributionsById(int id)
+        {
+            using var connection = new SqlConnection(_connectionString);
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = "SELECT * FROM Contributions c JOIN Simchas s on s.id = c.simchaId WHERE c.contributorId= @id";
+            cmd.Parameters.AddWithValue("@id", id);
+            connection.Open();
+
+            var reader = cmd.ExecuteReader();
+            List<Contribution> contributions = new();
+
+            while (reader.Read())
+            {
+                contributions.Add(new Contribution
+                {
+
+                    SimchaName = (string)reader["Name"],
+                    Amount = (decimal)reader["Amount"],
+                    Date = (DateTime)reader["Date"],
+
+
+                });
+            }
+
+            return contributions;
+        }
+
+        public Contributor GetContributorForId(int id)
+        {
+            using var connection = new SqlConnection(_connectionString);
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = "SELECT * FROM Contributors WHERE Id= @id";
+            cmd.Parameters.AddWithValue("@id", id);
+            connection.Open();
+
+            var reader = cmd.ExecuteReader();
+
+            Contributor c = new();
+
+            if (reader.Read())
+            {
+
+                c.Id = (int)reader["Id"];
+                c.FirstName = (string)reader["FirstName"];
+                c.LastName = (string)reader["LastName"];
+                c.CellNumber = (string)reader["CellNumber"];
+                c.Date = (DateTime)reader["Date"];
+                c.AlwaysInclude = (bool)reader["AlwaysInclude"];
+
+            }
+
+            c.TotalContributed = GetTotalContributed(c);
+            c.TotalDeposited = GetTotalDeposited(c);
+
+            return c;
+
+
+        }
+        public List<int> GetIdsOfContributorsForASimcha(int simchaId)
+        {
+            using var connection = new SqlConnection(_connectionString);
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = "SELECT contributorId From Contributions WHERE simchaId = @simchaId";
+            cmd.Parameters.AddWithValue("@simchaId", simchaId);
+            connection.Open();
+
+            var reader = cmd.ExecuteReader();
+            List<int> ids= new();
+
+            while (reader.Read())
+            {
+
+
+                int x = (int)reader["contributorId"];
+                ids.Add(x);
+                   
+               
+            }
+
+            return ids;
+        }
     }
 
 }

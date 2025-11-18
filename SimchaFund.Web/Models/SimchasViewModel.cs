@@ -8,6 +8,7 @@ namespace SimchaFund.Web.Models
         public List<Simcha> Simchas { get; set; }
         public int TotalContributors { get; set; }
         public int ContributorsForSimcha { get; set; }
+        public string Message { get; set; }
 
     }
 }

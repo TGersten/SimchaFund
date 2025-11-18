@@ -4,6 +4,15 @@
 
 <div b-2ya7vgwtda class="container">
     <main b-2ya7vgwtda role="main" class="pb-3" style="margin-top: 60px;">
+        @if(!String.IsNullOrEmpty(Model.Message))
+        {
+            <div class="col-md-12">
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    @Model.Message
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            </div>
+        }
         <div>
             <h1>Contributors</h1>
         </div>
@@ -34,11 +43,11 @@
                 {
                     @foreach (Contributor c in Model.Contributors)
                     {
-                        <tr>
+                        <tr class="person-row">
                             <td>
                                 <button class="btn btn-success deposit-button"  data-id="@c.Id" data-first-name="@c.FirstName" data-last-name=" @c.LastName">Deposit</button>
                             </td>
-                            <td>@c.LastName  @c.FirstName</td>
+                            <td id="name">@c.LastName  @c.FirstName</td>
                             <td>
                                 @c.CellNumber
                             </td>
